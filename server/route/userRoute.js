@@ -12,7 +12,7 @@ passport.use(
 	new LocalStrategy({ passReqToCallback: true }, async function verify(req,username,password,cb) {
 		// checks if the phone number inputed  matches
 		const user = await User.findOne({ email:username });
-        console.log(user)
+        // console.log(user)
 		if (user) {
 			//   user attempt
 			// if (user.status) {
@@ -50,17 +50,13 @@ passport.use(
 // 	}
 
 // };
-passport.serializeUser(function (user, done) {
-	// Store only the user id in the session
-	done(null, user.id);
-  });
+passport.serializeUser(function (user, cb) {
+	return cb(null, user);
+});
 
-  passport.deserializeUser(function (id, done) {
-	// Retrieve the user from the database using the id
-	User.findById(id, function (err, user) {
-	  done(err, user);
-	});
-  });
+  passport.deserializeUser(function (user, cb) {
+	return cb(null, user);
+});
 
 router.use(passport.initialize());
 router.use(passport.session());
@@ -68,11 +64,10 @@ router.use(passport.session());
 
 router.get("/user/login", controller.login);
 // outsourcing the authentication to  passport
-router.post("/user/login", passport.authenticate("local", {
+router.post('/user/login', passport.authenticate("local", {
     failureRedirect: "/user/login",
     failureFlash: true,
 }), controller.authenticatelogin);
-
 
 
 // router.post("/user/register", controller.register);
@@ -84,7 +79,7 @@ const isAuthenticated = (req, res, next) => {
 	  res.redirect("/user/login"); 
   };
 
-  router.use(isAuthenticated)
+//   router.use(isAuthenticated)
 // router.use(loginAuthentication)
 router.post("/user/register", controller.register);
 router.post("/user/changePassword",controller.changePassword);

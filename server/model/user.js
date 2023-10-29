@@ -18,6 +18,11 @@ const UsersSchema =  new mongoose.Schema({
   type: Boolean,
   default:true 
 },
+orderHistory: {
+  type: mongoose.Schema.Types.ObjectId, // Assuming product IDs are MongoDB ObjectIds
+  ref: 'Order', // Reference to the Product model
+  required: true,
+},
 
 })
 module.exports = mongoose.model("User",UsersSchema)

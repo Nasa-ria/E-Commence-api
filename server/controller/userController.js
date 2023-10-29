@@ -61,12 +61,15 @@ exports.delete = async(req,res)=>{
 };
 
 exports.changePassword  = async(req ,res) => {
-	let initialpassword = await bcrypt.compare(req.body.current_password,req.user.password);
+	const id = req.body.id;
+	const user = await User.findById(id);
+	let initialpassword = await bcrypt.compare(req.body.current_password,user.password);
 	if (initialpassword) {
         if(req.body.new_password === req.body.confirm_password){
+			
             try {
                 const newhashed = await bcrypt.hash(req.body.new_password, 10);
-                const user = await User.findById(req.user._id);
+                // const user = await User.findById(req.user._id);
                 user.password = newhashed
                 await user.save()
               
@@ -81,19 +84,20 @@ exports.changePassword  = async(req ,res) => {
     
 		
 	} else {
-        res.locals.message= "incorrect current password";
+		
+        // res.locals.message= "incorrect current password";
+		res.status(401).json({ message:"incorrect current password"})
          
 	}
 } else {
-    res.locals.message="incorrect current password";
-     
+    // res.locals.message="incorrect current password";
+	res.status(401).json({ message: "incorrect current password" })
 }
 };
 
 
 exports.login = async (req, res) => {
 	const errorMessage = req.flash('error'); // Retrieve flash error message
-  
 	// Check if there is an error message
 	if (errorMessage.length > 0) {
 	  res.status(401).json({ message: errorMessage }); // Respond with the error message
