@@ -1,8 +1,9 @@
-
+require('dotenv').config();
 require("../model/databaseConnection");
 const User = require("../model/user");
-// const router = express.Router();
+const jwt =  require("jsonwebtoken")
 const bcrypt = require('bcrypt');
+
 
 
 exports.register= async (req, res) => {
@@ -20,14 +21,10 @@ exports.register= async (req, res) => {
 		console.error(error);
 	  return res.status(500).json({ error: 'Internal Server Error' });
 	}
+
+	
   };
 
-
-  exports.edit = async (req, res) => {
-	let id = req.params.id;
-	const user = await User.findById(id);
-	return res.status(201).json(user)
-};
 
   exports.update = async(req, res) => {
 	try{
@@ -61,64 +58,63 @@ exports.delete = async(req,res)=>{
 };
 
 exports.changePassword  = async(req ,res) => {
-	let initialpassword = await bcrypt.compare(req.body.current_password,req.user.password);
+	const user = await User.findOne({_id:req.user.id})
+	if (user){
+	let initialpassword = await bcrypt.compare(req.body.current_password,user.password);
 	if (initialpassword) {
         if(req.body.new_password === req.body.confirm_password){
             try {
                 const newhashed = await bcrypt.hash(req.body.new_password, 10);
-                const user = await User.findById(req.user._id);
                 user.password = newhashed
                 await user.save()
-              
-                // await User.updateOne( { _id: req.user._id }, { password: newhashed, force_change_password: false });
-                req.reset_password =false;
                 return res.status(201).json(user)
                 
             } catch (error) {
                 console.error(error)
-               res.locals.message="password could not save ,try again later"
-            }
-    
-		
+				res.status(401).json("password could not save ,try again later")
+            }	
 	} else {
-        res.locals.message= "incorrect current password";
-         
+        console.error(error)
+				res.status(401).json( "incorrect current password");       
 	}
 } else {
-    res.locals.message="incorrect current password";
-     
+    res.status(401).json("incorrect current password");  
 }
+	}else{
+		res.status(401).json("user not found"); 
+	}
 };
 
-
-exports.login = async (req, res) => {
-	const errorMessage = req.flash('error'); // Retrieve flash error message
-  
-	// Check if there is an error message
-	if (errorMessage.length > 0) {
-	  res.status(401).json({ message: errorMessage }); // Respond with the error message
-	} else {
-	  res.status(200).json({ message: 'Login successful' }); // Respond with a success message
-	}
-  };
-
-exports.authenticatelogin = async (req, res, next) => {
-	if (req.isAuthenticated()) {
-		// Authentication successful, send a success message
-		res.locals.message = "Login successful";
-    return next();
-	  } else {
-		// Authentication failed, send an error message
-		const errorMessage = req.flash("error")[0]; // Retrieve the error message from flash
-		res.status(401).json({ message: "Authentication failed", error: errorMessage });
-	  }
+exports.authenticatelogin = async (req, res) => {
+	try{
+        const user = await User.findOne({email: req.body.email})
+        if(user){
+            const passwordVerify = await bcrypt.compare(req.body.password ,user.password)
+           if(passwordVerify){
+               const payload={
+                   id:user._id,
+                   name:user.name,
+                   email:user.email,
+               }
+               const accessToken= jwt.sign(payload, process.env.JWT_SECRET,{expiresIn:"1h"})
+                 token={accessToken}  
+           }else{
+			   return res.status(400).json("error when verifying password")
+           }   
+        }else{
+            return res.status(400).json("error when logging in");
+        }
+         res.status(201).json({feedback,message:"login successful"});
+    }catch(error){
+        console.log(error)
+    }
 };
 
 
 
 exports.logout = async (req, res) => {
-	// res.local.csrfToken = req.csrfToken();
-	req.logout();
+	const user = await User.findOne({_id:req.user.id})
+    req.logout();
 	res.locals.message= "you are logedOut";
 	res.status(200).json({ message: res.locals.message });
 };
