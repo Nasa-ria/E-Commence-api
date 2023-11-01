@@ -1,13 +1,11 @@
 // requiring exress
 const express = require("express");
-const passport = require("passport");
-const LocalStrategy = require("passport-local");
+const authenticateToken = require("../function/middleController");
 const controller = require("../controller/userController");
-const bcrypt = require('bcrypt');
-const User = require("../model/user");
 const router = require("express").Router();
 
 
+<<<<<<< HEAD
 passport.use(
 	new LocalStrategy({ passReqToCallback: true }, async function verify(req,username,password,cb) {
 		// checks if the phone number inputed  matches
@@ -85,9 +83,17 @@ router.post("/user/register", controller.register);
 router.post("/user/changePassword",controller.changePassword);
 router.get("/user/edit/:id", controller.edit);
 router.post("/user/update/:id",controller.update);
+=======
+
+
+router.post("/user/login", controller.authenticatelogin);
+router.post("/user/register" ,controller.register);
+router.post("/user/changePassword",authenticateToken,controller.changePassword);
+router.post("/user/update/:id",authenticateToken,controller.update);
+>>>>>>> 2d3bee4cb80f96e8a819aa952f3784a3cc88c8d4
 router.get("/user/user/:id", controller.user);
 router.get("/user/users", controller.users);
-router.get("/user/delete/:id", controller.delete);
+router.delete("/user/delete/:id",authenticateToken, controller.delete);
 
 
 module.exports = router;

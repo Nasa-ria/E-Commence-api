@@ -1,8 +1,9 @@
-
+require('dotenv').config();
 require("../model/databaseConnection");
 const User = require("../model/user");
-// const router = express.Router();
+const jwt =  require("jsonwebtoken")
 const bcrypt = require('bcrypt');
+
 
 
 exports.register= async (req, res) => {
@@ -20,14 +21,10 @@ exports.register= async (req, res) => {
 		console.error(error);
 	  return res.status(500).json({ error: 'Internal Server Error' });
 	}
+
+	
   };
 
-
-  exports.edit = async (req, res) => {
-	let id = req.params.id;
-	const user = await User.findById(id);
-	return res.status(201).json(user)
-};
 
   exports.update = async(req, res) => {
 	try{
@@ -61,43 +58,34 @@ exports.delete = async(req,res)=>{
 };
 
 exports.changePassword  = async(req ,res) => {
-	const id = req.body.id;
-	const user = await User.findById(id);
-	let initialpassword = await bcrypt.compare(req.body.current_password,user.password);
+	let initialpassword = await bcrypt.compare(req.body.current_password,req.user.password);
 	if (initialpassword) {
         if(req.body.new_password === req.body.confirm_password){
 			
             try {
                 const newhashed = await bcrypt.hash(req.body.new_password, 10);
-                // const user = await User.findById(req.user._id);
+                const user = await User.findById(req.user._id);
                 user.password = newhashed
                 await user.save()
-              
-                // await User.updateOne( { _id: req.user._id }, { password: newhashed, force_change_password: false });
-                req.reset_password =false;
                 return res.status(201).json(user)
                 
             } catch (error) {
                 console.error(error)
-               res.locals.message="password could not save ,try again later"
-            }
-    
-		
+				res.status(401).json("password could not save ,try again later")
+            }	
 	} else {
-		
-        // res.locals.message= "incorrect current password";
-		res.status(401).json({ message:"incorrect current password"})
+        res.locals.message= "incorrect current password";
          
 	}
 } else {
-    // res.locals.message="incorrect current password";
-	res.status(401).json({ message: "incorrect current password" })
+    res.locals.message="incorrect current password";
+     
 }
 };
 
-
 exports.login = async (req, res) => {
 	const errorMessage = req.flash('error'); // Retrieve flash error message
+  
 	// Check if there is an error message
 	if (errorMessage.length > 0) {
 	  res.status(401).json({ message: errorMessage }); // Respond with the error message
@@ -121,8 +109,8 @@ exports.authenticatelogin = async (req, res, next) => {
 
 
 exports.logout = async (req, res) => {
-	// res.local.csrfToken = req.csrfToken();
-	req.logout();
+	const user = await User.findOne({_id:req.user.id})
+    req.logout();
 	res.locals.message= "you are logedOut";
 	res.status(200).json({ message: res.locals.message });
 };
