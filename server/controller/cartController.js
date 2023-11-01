@@ -63,7 +63,7 @@ exports.updateCart = async (req, res) => {
     }
   };
 
-  app.post('/process-checkout', async (req, res) => {
+  exports.checkout = async (req, res) => {
     const { userId, shippingAddress, paymentInfo, cart } = req.body;
   
     try {
@@ -106,6 +106,11 @@ exports.updateCart = async (req, res) => {
         // Send an order confirmation email
   
         // Clear or update the user's cart
+        const userCart = await Cart.findOne({ userId });
+      if (userCart) {
+        userCart.items = []; // Clear all items in the cart
+        await userCart.save();
+      }
   
         // Redirect to a confirmation page
         res.status(200).json({ message: 'Order processed successfully' });
@@ -116,5 +121,5 @@ exports.updateCart = async (req, res) => {
       console.error(error);
       res.status(500).json({ error: 'Failed to process the order' });
     }
-  });
+  };
   
