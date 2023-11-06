@@ -1,11 +1,11 @@
 const express = require("express");
 const controller = require("../controller/productController");
-const product = require("../model/product");
+const authenticateToken = require("../function/middleController");
 const router = require("express").Router();
 
-router.post("/create", controller.create);
-router.post("/update/:id",controller.update);
-router.delete("/delete/:id",controller.delete);
+router.post("/create", authenticateToken,controller.create);
+router.post("/update/:id",authenticateToken,controller.update);
+router.delete("/delete/:id",authenticateToken,controller.delete);
 router.get("/product/:id",controller.product);
 router.get("/products",controller.products)
 

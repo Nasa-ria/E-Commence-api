@@ -14,12 +14,12 @@ userId: {
     required: true,
     default: Date.now, 
   },
-  products: [
+  items: [
     {
       productId: {
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Product', 
-        required: true,
+        // required: true,
       },
       quantity: {
         type: Number,

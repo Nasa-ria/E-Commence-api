@@ -7,7 +7,8 @@ exports.create = async(req, res)=>{
           name: req.body.name,
           price:req.body.price,
           details: req.body.details,
-          category:req.body.category
+          category:req.body.category,
+          quantity:req.body.quantity
         });
         await product.save();
         return res.status(201).json(product); 
@@ -33,7 +34,7 @@ exports.products = async(req,res) =>{
     return res.status(201).json(products);
   
 }
-u=
+
 exports.update = async(req,res)=>{
    try{
     let id = req.params.id

@@ -85,7 +85,6 @@ exports.changePassword  = async(req ,res) => {
 
 exports.login = async (req, res) => {
 	const errorMessage = req.flash('error'); // Retrieve flash error message
-  
 	// Check if there is an error message
 	if (errorMessage.length > 0) {
 	  res.status(401).json({ message: errorMessage }); // Respond with the error message
@@ -94,17 +93,29 @@ exports.login = async (req, res) => {
 	}
   };
 
-exports.authenticatelogin = async (req, res, next) => {
-	if (req.isAuthenticated()) {
-		// Authentication successful, send a success message
-		res.locals.message = "Login successful";
-    return next();
+  
+  exports.authenticatelogin = async (req, res, next) => {
+	const { email, password } = req.body;
+  
+	try {
+	  const user = await User.findOne({ email: email }); 
+	  if (!user) {
+		return res.status(401).json({ message: 'User not available' });
+	  } 
+	  const passwordMatch = await bcrypt.compare(password, user.password); 
+	  if (passwordMatch) {
+		const payload = { userId: user.id };
+		const secretKey = process.env.JWT_SECRET; 
+		const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+		res.json({ token });
 	  } else {
-		// Authentication failed, send an error message
-		const errorMessage = req.flash("error")[0]; // Retrieve the error message from flash
-		res.status(401).json({ message: "Authentication failed", error: errorMessage });
+		return res.status(401).json({ message: 'Invalid credentials' });
 	  }
-};
+	} catch (error) {
+	  console.error(error); 
+	  return res.status(500).json({ message: 'Internal server error' });
+	}
+  };
 
 
 
