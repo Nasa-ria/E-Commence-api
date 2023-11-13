@@ -72,7 +72,7 @@ exports.order= async(req,res)=>{
 }
 
 exports.findOrdersByUser = (req, res) => {
-  const userId = req.params.userId; // Assuming you receive the user ID in the URL parameters
+  const userId = req.params.id; // Assuming you receive the user ID in the URL parameters
 
   // Use Mongoose to find orders with a matching userId
   Order.find({ userId: userId }, (err, orders) => {
