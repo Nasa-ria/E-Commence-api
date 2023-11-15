@@ -10,6 +10,7 @@ const authenticateToken = async (req, res, next) => {
         try {
           const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
           req.user = verifyToken;
+          // console.log(req.user.userId);
           next();
         } catch (error) {
           console.error(error); 

@@ -3,6 +3,10 @@ const Order = require("../model/order");
 const User = require("../model/user");
 const Product = require("../model/product");
 const Cart = require("../model/cart")
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+
+
 
 // exports.create = async(req, res)=>{
 //     const { orderDate, products } = req.body;
@@ -72,7 +76,7 @@ exports.order= async(req,res)=>{
 }
 
 exports.findOrdersByUser = (req, res) => {
-  const userId = req.params.id; // Assuming you receive the user ID in the URL parameters
+  const userId = req.user.id; // Assuming you receive the user ID in the URL parameters
 
   // Use Mongoose to find orders with a matching userId
   Order.find({ userId: userId }, (err, orders) => {
@@ -87,12 +91,12 @@ exports.findOrdersByUser = (req, res) => {
 };
 
 exports.checkout = async (req, res) => {
-  const { userId, shippingAddress, paymentInfo, cart } = req.body;
+  const {  shippingAddress, paymentInfo, cart } = req.body;
 
   try {
     // Create a new order document
     const order = new Order({
-      userId,
+      userId : req.user.id,
       shippingAddress,
       items: cart.items,
       // Calculate the order total based on cart items and additional fees
@@ -128,6 +132,7 @@ exports.checkout = async (req, res) => {
 
       // Send an order confirmation email
 
+       const userId = order.userId;
       // Clear or update the user's cart
       const userCart = await Cart.findOne({ userId });
     if (userCart) {
